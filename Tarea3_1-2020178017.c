@@ -12,18 +12,19 @@
 #define PATH_MAX 256
 
 void encontrar_archivo(const char *pRutaOrigen, const char *pNombreArchivo) {
-    FILE *archivo = fopen(pRutaOrigen, "r");
-    if (!archivo) {
-        perror("Error al abrir el archivo de origen");
-        exit(EXIT_FAILURE);
-    };
+    // FILE *archivo = fopen(pRutaOrigen, "r");
+    // if (!archivo) {
+    //     perror("Error al abrir el archivo de origen");
+    //     exit(EXIT_FAILURE);
+    // };
     
     // archivos con mismo nombre
-    if (strcmp(archivo,pNombreArchivo) == 0){
-    	printf("Archivo encontrado en %s \n");
+    struct dirent *rutaO;
+    if (strcmp(rutaO->d_name, pNombreArchivo) == 0){
+    	printf("Archivo encontrado en %s \n", pRutaOrigen);
     };
 
-    fclose(archivo);
+    //fclose(archivo);
     
 };
 
