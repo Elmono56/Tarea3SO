@@ -2,6 +2,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+#define MAXEMPLEADOS 10
+
 typedef struct {
 	char nombre[40];
 	int edad;
@@ -10,12 +12,12 @@ typedef struct {
 
 void guardarEmpleados(const char *pNombreArch) {
 	FILE *archivo;
-	Empleado array_empleados[10];
+	Empleado array_empleados[MAXEMPLEADOS];
 	// Abrir el archivo en modo escritura
 	archivo = fopen(pNombreArch, "wb");
 
 	// Generar los datos de los 10 empleados de manera recursiva y guardarlos en el archivo
-	for(int i = 0; i < 10; i++) {
+	for(int i = 0; i < MAXEMPLEADOS; i++) {
         char numero[3];
         sprintf(numero, "%d", i + 1);
         strcpy(array_empleados[i].nombre, "Empleado ");
@@ -30,15 +32,15 @@ void guardarEmpleados(const char *pNombreArch) {
 	fclose(archivo);
 };
 
-void printEmplImpares(const char *nombreArchivo) {
+void printEmplImpares(const char *pNombreArch) {
 	FILE *archivo;
 	Empleado empleado;
 	// Abrir el archivo en modo lectura
-	archivo = fopen(nombreArchivo, "rb");
+	archivo = fopen(pNombreArch, "rb");
 
 	// Recorrer las posiciones impares del archivo usando fseek
     // empieza en 1 ya que el indice 0 sería el primer empleado y el ind 1 el segundo
-	for(int i = 1; i < 10; i += 2) {
+	for(int i = 1; i < MAXEMPLEADOS; i += 2) {
 		fseek(archivo, i * sizeof(Empleado), SEEK_SET);
 		fread(&empleado, sizeof(Empleado), 1, archivo);
 		
