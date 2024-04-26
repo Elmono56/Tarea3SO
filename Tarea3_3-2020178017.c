@@ -16,7 +16,10 @@ void guardarEmpleados(const char *pNombreArch) {
 
 	// Generar los datos de los 10 empleados de manera recursiva y guardarlos en el archivo
 	for(int i = 0; i < 10; i++) {
-        sprintf(array_empleados[i].nombre + strlen(array_empleados[i].nombre), " %d", i+1);
+        char numero[3];
+        sprintf(numero, "%d", i + 1);
+        strcpy(array_empleados[i].nombre, "Empleado ");
+        strcat(array_empleados[i].nombre, numero);
         array_empleados[i].edad = i+1;
         array_empleados[i].salario = 1100.1*(i+1);
 		
@@ -39,7 +42,6 @@ void printEmplImpares(const char *nombreArchivo) {
 		fseek(archivo, i * sizeof(Empleado), SEEK_SET);
 		fread(&empleado, sizeof(Empleado), 1, archivo);
 		
-		printf("Empleado %d:\n", i+1);
 		printf("Nombre: %s\n", empleado.nombre);
 		printf("Edad: %d\n", empleado.edad);
 		printf("Salario: %.2f\n\n", empleado.salario);
