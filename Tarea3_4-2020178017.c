@@ -19,20 +19,21 @@ pthread_mutex_t mutex; // Mutex para proteger el acceso al archivo
 void* guardarEmpleados(void *arg) {
 	FILE *archivo;
 	Empleado empl;
-	// Abrir el archivo en modo escritura
-	archivo = fopen(ARCHIVO, "wb");
-    if (archivo == NULL) {
-        perror("Error al abrir el archivo");
-        exit(1);
-    };
     
     // Generar los datos de los 10 empleados de manera recursiva y guardarlos en el archivo utilizando un mutex como bloqueo
     for (int i = 0; i < MAXEMPLEADOS; i++) {
-        char numero[3];
-        sprintf(numero, "%d", i + 1);
-        strcpy(empl.nombre, "Empleado ");
+        // Abrir el archivo en modo append
+        archivo = fopen(ARCHIVO, "a");
+        if (archivo == NULL) {
+            perror("Error al abrir el archivo");
+            exit(1);
+        };
+
         // reiniciar/reciclar el nombre del empleado
         strcpy(empl.nombre, "");
+        char numero[3];
+        sprintf(numero, "%d", i + 1);
+        strcpy(empl.nombre, "Empleado");
         strcat(empl.nombre, numero);
         empl.edad = i+1;
         empl.salario = 1100.1*(i+1);
@@ -40,52 +41,54 @@ void* guardarEmpleados(void *arg) {
         // Bloquear el acceso al archivo antes de escribir
         pthread_mutex_lock(&mutex);
 
-        // Escribir la información del empleado en el archivo binario
-        fwrite(&empl, sizeof(Empleado), 1, archivo);
-
+        // Escribir la información del empleado en el archivo
+        fprintf(archivo, "%s,%d,%.2f\n", empl.nombre, empl.edad, empl.salario);
+        
         // Desbloquear el acceso al archivo
         pthread_mutex_unlock(&mutex);
+
+        //cerrar el archivo
+        fclose(archivo);
 
         // Esperar 2 segundos
         sleep(TIEMPO_ESPERA);
     };
 
-    fclose(archivo);
     return NULL;
 };
 
-void *leerArchivo(void *arg) {
+void* leerArchivo(void *arg) {
 	FILE *archivo;
 	Empleado empl;
-    int i = 1;
-    for (int i = 0; i < MAXEMPLEADOS; i++) {
-        // Abrir el archivo en modo lectura binaria ("rb")
-        archivo = fopen(ARCHIVO, "rb");
+    
+
+    for (int i = 0; i <= MAXEMPLEADOS; i++) {
+
+        // Abrir el archivo en modo lectura
+        archivo = fopen(ARCHIVO, "r");
         if (archivo == NULL) {
             perror("Error al abrir el archivo");
             exit(1);
         };
 
-        // Rebobinar el archivo al inicio
-        fseek(archivo, 0, SEEK_SET);
-
         // Bloquear el acceso al archivo antes de leer
         pthread_mutex_lock(&mutex);
 
         // Leer la información de los empleados del archivo binario
-        printf("\n____________________________________________\n Iteración %d \n", i);
-        while (fread(&empl, sizeof(Empleado), 1, archivo) != 0) {
-            printf("Nombre: %s - Edad: %d - Salario: %.2f\n", empl.nombre, empl.edad, empl.salario);
+        printf("\n------------------Iteración %d------------------\n", i);
+        printf("Formato: Nombre, Edad, Salario:\n");
+        while (fscanf(archivo, "%s,%d,%.2f\n", empl.nombre, empl.edad, &empl.salario) != EOF) {
+            printf("%s\n", empl.nombre);
         };
-
         // Desbloquear el acceso al archivo
         pthread_mutex_unlock(&mutex);
 
         // Cerrar el archivo
         fclose(archivo);
-
+        
         // Esperar 2 segundos
         sleep(TIEMPO_ESPERA);
+
     };
 
     return NULL;
