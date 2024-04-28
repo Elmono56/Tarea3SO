@@ -1,75 +1,65 @@
 #include <stdio.h>
-#include <unistd.h>
 #include <stdlib.h>
 #include <string.h>
 #include <dirent.h>
 #include <sys/stat.h>
-#include <stdint.h>
 #include <errno.h>
 #include <unistd.h>
-#include <sys/types.h>
 
-#define PATH_MAX 256
+#define MAX_PATH 4096
 
-void encontrar_archivo(const char *pRutaOrigen, const char *pNombreArchivo) {
-    // FILE *archivo = fopen(pRutaOrigen, "r");
-    // if (!archivo) {
-    //     perror("Error al abrir el archivo de origen");
-    //     exit(EXIT_FAILURE);
-    // };
-    
-    // archivos con mismo nombre
-    struct dirent *rutaO;
-    if (strcmp(rutaO->d_name, pNombreArchivo) == 0){
-    	printf("Archivo encontrado en %s \n", pRutaOrigen);
+int buscar_archivo(const char *pRutaOrigen, const char *pNomArch) {
+    DIR *dir;
+    struct dirent *entrada;
+    struct stat info_archivo;
+    char ruta_completa[MAX_PATH];
+
+    dir = opendir(pRutaOrigen);
+    if (dir == NULL) {
+        fprintf(stderr, "Error al abrir el directorio %s: %s\n", pRutaOrigen, strerror(errno));
+        return 0;
     };
 
-    //fclose(archivo);
-    
-};
-
-void avanzar_directorio(const char *pRutaOrigen, const char *pNombreArchivo) {
-
-    DIR *dir = opendir(pRutaOrigen);
-    if (!dir) {
-        perror("Error al abrir el directorio de origen");
-        exit(EXIT_FAILURE);
-    };
-
-    struct dirent *dp;
-    while ((dp = readdir(dir)) != NULL) {
-        if (strcmp(dp->d_name, ".") == 0 || strcmp(dp->d_name, "..") == 0) {
+    while ((entrada = readdir(dir)) != NULL) {
+        if (strcmp(entrada->d_name, ".") == 0 || strcmp(entrada->d_name, "..") == 0) {
             continue;
+        };
+
+        snprintf(ruta_completa, MAX_PATH, "%s/%s", pRutaOrigen, entrada->d_name);
+
+        if (lstat(ruta_completa, &info_archivo) == -1) {
+            fprintf(stderr, "Error al obtener información del archivo %s: %s\n", ruta_completa, strerror(errno));
+            continue;
+        };
+
+        if (S_ISDIR(info_archivo.st_mode)) {
+            if (buscar_archivo(ruta_completa, pNomArch)==1){
+                close(dir);
+                return 1;
+            };
         }
-
-        char rutaOrigenCompleta[PATH_MAX];
-        snprintf(rutaOrigenCompleta, PATH_MAX, "%s/%s", pRutaOrigen, dp->d_name);
-
-        struct stat info;
-        if (stat(rutaOrigenCompleta, &info) == -1) {
-            perror("Error al obtener información del archivo/directorio de origen");
-            exit(EXIT_FAILURE);
-        }
-
-        if (S_ISDIR(info.st_mode)) {
-            avanzar_directorio(rutaOrigenCompleta, pNombreArchivo);
-        } else if (S_ISREG(info.st_mode)) {
-            encontrar_archivo(rutaOrigenCompleta, pNombreArchivo);
+        else if (S_ISREG(info_archivo.st_mode) && strcmp(entrada->d_name, pNomArch) == 0) {
+            printf("Archivo encontrado en: %s\n", ruta_completa);
+            closedir(dir);
+            return 1;
         };
     };
 
     closedir(dir);
-}
-
+    return 0;
+};
 
 int main(int argc, char *argv[]) {
-
     if (argc != 3) {
-        fprintf(stderr, "Uso: %s directorio nombre_archivo \n", argv[0]);
-        exit(EXIT_FAILURE);
+        fprintf(stderr, "Uso: %s directorio pNomArch\n", argv[0]);
+        return 0;
     };
-    // arg1 = directorio, arg2 = nombrea archivo
-    avanzar_directorio(argv[1],argv[2]);
+
+    // arg[1] es el directorio, arg[2] el nombre del archivo
+    // return fue 0, no fue encontrado
+    if (!buscar_archivo(argv[1], argv[2])) {
+        printf("Archivo no encontrado en todo el directorio ni subdirectorios\n");
+    };
 
     return 0;
-}
+};
