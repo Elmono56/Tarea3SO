@@ -9,8 +9,13 @@
 #define PATH_MAX 256
 
 void imprimirArchivo(char *nombre, struct stat pInfoArch, int pNivel) {
-	for (int i = 0; i < pNivel; i++) printf("    ");
-    printf("Archivo: %s, %ld bytes, Creado: %s \n", nombre, pInfoArch.st_size,  ctime(&pInfoArch.st_ctime));
+    char *nombreArchivo = strrchr(nombre, '/');
+
+    if (nombreArchivo == NULL) nombreArchivo = nombre;
+    else nombreArchivo++;
+    
+    for (int i = 0; i < pNivel; i++) printf("    ");
+    printf("Archivo: %s, %ld bytes, Creado: %s \n", nombreArchivo, pInfoArch.st_size, ctime(&pInfoArch.st_ctime));
 };
 
 void avanzar_directorio(const char *pRutaOrigen, int pNivel) {
